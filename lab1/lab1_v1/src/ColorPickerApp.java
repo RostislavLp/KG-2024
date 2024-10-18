@@ -1,200 +1,617 @@
+//package lab_1;
+
 import javax.swing.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import java.util.Locale;
 
-public class ColorPickerApp extends JFrame {
-    private JTextField rgbRField, rgbGField, rgbBField;
-    private JTextField cmykCField, cmykMField, cmykYField, cmykKField;
-    private JTextField hlsHField, hlsLField, hlsSField;
-    private JPanel colorDisplay;
-    private JSlider rSlider, gSlider, bSlider;
+public class ColorConvert extends JFrame {
 
-    public ColorPickerApp() {
-        setTitle("Color Picker");
-        setSize(600, 500);
+    private JTextField redField, greenField, blueField;
+    private JTextField cField, mField, yField, kField;
+    private JTextField hField, sField, vField;
+    private JPanel colorDisplayPanel;
+    private Color chosenColor = Color.WHITE;
+    private JSlider redSlider, greenSlider, blueSlider;
+    private JSlider cSlider, mSlider, ySlider, kSlider;
+    private JSlider hSlider, sSlider, vSlider;
+    private boolean isRGBUpdating = false;
+    private boolean isCMYKUpdating = false;
+    private boolean isHSVUpdating = false;
+    private boolean updatingSlider = false;
+
+
+    private DecimalFormat decimalFormat;
+
+    public ColorConvert() {
+        DecimalFormatSymbols symbols = new DecimalFormatSymbols(Locale.US);
+        decimalFormat = new DecimalFormat("#.##", symbols);
+
+        setTitle("Transformer");
+        setSize(800, 600);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLayout(new GridLayout(5, 1));
+        setLocationRelativeTo(null);
+        setLayout(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 15, 5, 15);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        // Color display panel
-        colorDisplay = new JPanel();
-        colorDisplay.setPreferredSize(new Dimension(600, 100));
-        add(colorDisplay);
+        //-----
+        colorDisplayPanel = new JPanel();
+        colorDisplayPanel.setPreferredSize(new Dimension(100, 100));
+        colorDisplayPanel.setBackground(Color.WHITE);
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.gridwidth = 2;
+        gbc.anchor = GridBagConstraints.CENTER;
+        add(new JLabel("Color Display:"), gbc);
+        gbc.gridy = 1;
+        add(colorDisplayPanel, gbc);
+        //-----
 
-        // RGB Inputs
-        JPanel rgbPanel = new JPanel();
-        rgbPanel.setBorder(BorderFactory.createTitledBorder("RGB"));
-        rgbRField = createTextField(rgbPanel, "R:");
-        rgbGField = createTextField(rgbPanel, "G:");
-        rgbBField = createTextField(rgbPanel, "B:");
-        add(rgbPanel);
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        add(new JLabel("Red (0-255):"), gbc);
+        redField = new JTextField();
 
-        // Sliders for RGB
-        JPanel sliderPanel = new JPanel();
-        sliderPanel.setBorder(BorderFactory.createTitledBorder("Adjust Color"));
-        rSlider = createSlider(sliderPanel, "R", 255);
-        gSlider = createSlider(sliderPanel, "G", 255);
-        bSlider = createSlider(sliderPanel, "B", 255);
-        add(sliderPanel);
+        gbc.gridx = 1;
+        add(redField, gbc);
 
-        // CMYK Inputs
-        JPanel cmykPanel = new JPanel();
-        cmykPanel.setBorder(BorderFactory.createTitledBorder("CMYK"));
-        cmykCField = createTextField(cmykPanel, "C:");
-        cmykMField = createTextField(cmykPanel, "M:");
-        cmykYField = createTextField(cmykPanel, "Y:");
-        cmykKField = createTextField(cmykPanel, "K:");
-        add(cmykPanel);
-
-        // HLS Inputs
-        JPanel hlsPanel = new JPanel();
-        hlsPanel.setBorder(BorderFactory.createTitledBorder("HLS"));
-        hlsHField = createTextField(hlsPanel, "H:");
-        hlsLField = createTextField(hlsPanel, "L:");
-        hlsSField = createTextField(hlsPanel, "S:");
-        add(hlsPanel);
-
-        // Set initial color
-        updateColor(255, 0, 0); // Initial color Red
-
-        // Button to choose color from palette
-        JButton chooseColorButton = new JButton("Choose Color");
-        chooseColorButton.addActionListener(e -> chooseColor());
-        add(chooseColorButton);
-
-        setVisible(true);
-    }
-
-    private JTextField createTextField(JPanel panel, String label) {
-        JLabel jLabel = new JLabel(label);
-        JTextField textField = new JTextField(5);
-        textField.addActionListener(new ColorChangeListener());
-        panel.add(jLabel);
-        panel.add(textField);
-        return textField;
-    }
-
-    private JSlider createSlider(JPanel panel, String label, int max) {
-        JSlider slider = new JSlider(0, max);
-        slider.addChangeListener(e -> updateFromSliders());
-        JLabel jLabel = new JLabel(label + ": ");
-
-        panel.add(jLabel);
-        panel.add(slider);
-
-        return slider;
-    }
-
-    private void updateFromSliders() {
-        int r = rSlider.getValue();
-        int g = gSlider.getValue();
-        int b = bSlider.getValue();
-
-        updateColor(r, g, b);
-    }
-
-    private void chooseColor() {
-        Color selectedColor = JColorChooser.showDialog(this, "Choose a Color", colorDisplay.getBackground());
-
-        if (selectedColor != null) {
-            int r = selectedColor.getRed();
-            int g = selectedColor.getGreen();
-            int b = selectedColor.getBlue();
-            rSlider.setValue(r);
-            gSlider.setValue(g);
-            bSlider.setValue(b);
-            updateColor(r, g, b);
-        }
-    }
-    private class ColorChangeListener implements ActionListener {
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            try {
-                int r = Integer.parseInt(rgbRField.getText());
-                int g = Integer.parseInt(rgbGField.getText());
-                int b = Integer.parseInt(rgbBField.getText());
-                updateColor(r, g, b);
-                rSlider.setValue(r);
-                gSlider.setValue(g);
-                bSlider.setValue(b);
-            } catch (NumberFormatException ex) {
-                // Handle invalid input
+        redSlider = new JSlider(0, 255);
+        redSlider.setValue(255);
+        redSlider.addChangeListener(new ChangeListener() {
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                if (!updatingSlider) {
+                    updateColorFromRGBSlider();
+                }
             }
+        });
+        gbc.gridx = 2;
+        add(redSlider, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = 3;
+        add(new JLabel("Green (0-255):"), gbc);
+        greenField = new JTextField();
+        gbc.gridx = 1;
+        add(greenField, gbc);
+
+        greenSlider = new JSlider(0, 255);
+        greenSlider.setValue(255);
+        greenSlider.addChangeListener(new ChangeListener() {
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                if (!updatingSlider) {
+                    updateColorFromRGBSlider();
+                }
+            }
+        });
+        gbc.gridx = 3;
+        add(greenSlider, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = 4;
+        add(new JLabel("Blue (0-255):"), gbc);
+        blueField = new JTextField();
+        gbc.gridx = 1;
+        add(blueField, gbc);
+
+        blueSlider = new JSlider(0, 255);
+        blueSlider.setValue(255);
+        blueSlider.addChangeListener(new ChangeListener() {
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                if (!updatingSlider) {
+                    updateColorFromRGBSlider();
+                }
+            }
+        });
+        gbc.gridx = 3;
+        add(blueSlider, gbc);
+
+        JButton rgbToOthersButton = new JButton("Apply RGB");
+        gbc.gridx = 0;
+        gbc.gridy = 5;
+        gbc.gridwidth = 2;
+        add(rgbToOthersButton, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = 6;
+        add(new JLabel("C (0-1):"), gbc);
+        cField = new JTextField();
+        gbc.gridx = 1;
+        add(cField, gbc);
+
+        cSlider = new JSlider(0, 100);
+        cSlider.setValue(0);
+        cSlider.addChangeListener(new ChangeListener() {
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                if (!updatingSlider) {
+                    updateCMYKSliders();
+                }
+            }
+        });
+        gbc.gridx = 3;
+        add(cSlider, gbc);
+        gbc.gridx = 0;
+        gbc.gridy = 7;
+        add(new JLabel("M (0-1):"), gbc);
+        mField = new JTextField();
+        gbc.gridx = 1;
+        add(mField, gbc);
+
+        mSlider = new JSlider(0, 100);
+        mSlider.setValue(0);
+        mSlider.addChangeListener(new ChangeListener() {
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                if (!updatingSlider) {
+                    updateCMYKSliders();
+                }
+            }
+        });
+        gbc.gridx = 3;
+        add(mSlider, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = 8;
+        add(new JLabel("Y (0-1):"), gbc);
+        yField = new JTextField();
+        gbc.gridx = 1;
+        add(yField, gbc);
+
+        ySlider = new JSlider(0, 100);
+        ySlider.setValue(0);
+        ySlider.addChangeListener(new ChangeListener() {
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                if (!updatingSlider) {
+                    updateCMYKSliders();
+                }
+            }
+        });
+        gbc.gridx = 3;
+        add(ySlider, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = 9;
+        add(new JLabel("K (0-1):"), gbc);
+        kField = new JTextField();
+        gbc.gridx = 1;
+        add(kField, gbc);
+
+        kSlider = new JSlider(0, 100);
+        kSlider.setValue(0);
+        kSlider.addChangeListener(new ChangeListener() {
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                if (!updatingSlider) {
+                    updateCMYKSliders();
+                }
+            }
+        });
+        gbc.gridx = 3;
+        add(kSlider, gbc);
+
+        JButton cmykToOthersButton = new JButton("Apply CMYK");
+        gbc.gridx = 0;
+        gbc.gridy = 10;
+        gbc.gridwidth = 2;
+        add(cmykToOthersButton, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = 11;
+        add(new JLabel("Hue (0-360):"), gbc);
+        hField = new JTextField();
+        gbc.gridx = 1;
+        add(hField, gbc);
+
+        hSlider = new JSlider(0, 36000);
+        hSlider.setValue(0);
+        hSlider.addChangeListener(new ChangeListener() {
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                if (!updatingSlider) {
+                    updateHSVSliders();
+                }
+            }
+        });
+        gbc.gridx = 3;
+        add(hSlider, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = 12;
+        add(new JLabel("Saturation (0-1):"), gbc);
+        sField = new JTextField();
+        gbc.gridx = 1;
+        add(sField, gbc);
+
+        sSlider = new JSlider(0, 100);
+        sSlider.setValue(100);
+        sSlider.addChangeListener(new ChangeListener() {
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                if (!updatingSlider) {
+                    updateHSVSliders();
+                }
+            }
+        });
+        gbc.gridx = 3;
+        add(sSlider, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = 13;
+        add(new JLabel("Value (0-1):"), gbc);
+        vField = new JTextField();
+        gbc.gridx = 1;
+        add(vField, gbc);
+
+        vSlider = new JSlider(0, 100);
+        vSlider.setValue(100);
+        vSlider.addChangeListener(new ChangeListener() {
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                if (!updatingSlider) {
+                    updateHSVSliders();
+                }
+            }
+        });
+        gbc.gridx = 3;
+        add(vSlider, gbc);
+
+        JButton hsvToOthersButton = new JButton("Apply HSV");
+        gbc.gridx = 0;
+        gbc.gridy = 14;
+        gbc.gridwidth = 2;
+        add(hsvToOthersButton, gbc);
+
+        // Color Chooser and color display
+        JButton chooseColorButton = new JButton("  Color Chooser  ");
+        gbc.gridy = 15;
+        add(chooseColorButton, gbc);
+        // there colorDisplay
+
+// ------
+        updateColorFromRGBSlider();
+
+        rgbToOthersButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                convertRGBtoOthers();
+            }
+        });
+
+        cmykToOthersButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                convertCMYKtoOthers();
+            }
+        });
+
+        hsvToOthersButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                convertHSVtoOthers();
+            }
+        });
+
+        chooseColorButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                chooseColorFromPalette();
+            }
+        });
+    }
+
+    private void convertRGBtoOthers() {
+        try {
+            int r = Integer.parseInt(redField.getText());
+            int g = Integer.parseInt(greenField.getText());
+            int b = Integer.parseInt(blueField.getText());
+
+            updatingSlider = true;
+            redSlider.setValue(r);
+            greenSlider.setValue(g);
+            blueSlider.setValue(b);
+            updatingSlider = false;
+
+            if (r < 0 || r > 255 || g < 0 || g > 255 ||  b < 0 || b > 255) {
+                JOptionPane.showMessageDialog(this, "Please enter values between 0 and 255 for RGB.");
+                return;
+            }
+
+            convertRGBtoCMYK(r, g, b);
+            convertRGBtoHSV(r, g, b);
+
+            chosenColor = new Color(r, g, b);
+            colorDisplayPanel.setBackground(chosenColor);
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(this, "Please enter valid integers.");
         }
     }
 
-    private void updateColor(int r, int g, int b) {
-        // Update RGB display
-        rgbRField.setText(String.valueOf(r));
-        rgbGField.setText(String.valueOf(g));
-        rgbBField.setText(String.valueOf(b));
-
-        // Convert to CMYK
-        float[] cmyk = rgbToCmyk(r, g, b);
-        cmykCField.setText(String.format("%.2f", cmyk[0]));
-        cmykMField.setText(String.format("%.2f", cmyk[1]));
-        cmykYField.setText(String.format("%.2f", cmyk[2]));
-        cmykKField.setText(String.format("%.2f", cmyk[3]));
-
-        // Convert to HLS
-        float[] hls = rgbToHls(r, g, b);
-        hlsHField.setText(String.format("%.2f", hls[0]));
-        hlsLField.setText(String.format("%.2f", hls[1]));
-        hlsSField.setText(String.format("%.2f", hls[2]));
-
-        // Update color display
-        colorDisplay.setBackground(new Color(r, g, b));
-    }
-
-    private float[] rgbToCmyk(int r, int g, int b) {
-        float c = 1 - (r / 255f);
-        float m = 1 - (g / 255f);
-        float y = 1 - (b / 255f);
-
-        float k = Math.min(c, Math.min(m, y));
+    private void convertRGBtoCMYK(int r, int g, int b) {
+        double c = 1 - ((1.0) * r / 255.0);
+        double m = 1 - ((1.0) * g / 255.0);
+        double y = 1 - ((1.0) * b / 255.0);
+        double k = Math.min(c, Math.min(m, y));
 
         if (k < 1) {
             c = (c - k) / (1 - k);
             m = (m - k) / (1 - k);
             y = (y - k) / (1 - k);
         } else {
-            c = m = y = 0;
+            c = 0;
+            m = 0;
+            y = 0;
         }
 
-        return new float[]{c, m, y, k};
+        cField.setText(decimalFormat.format(c));
+        mField.setText(decimalFormat.format(m));
+        yField.setText(decimalFormat.format(y));
+        kField.setText(decimalFormat.format(k));
+
+        updatingSlider = true;
+        cSlider.setValue((int) (c * 100));
+        mSlider.setValue((int) (m * 100));
+        ySlider.setValue((int) (y * 100));
+        kSlider.setValue((int) (k * 100));
+        updatingSlider = false;
     }
 
-    private float[] rgbToHls(int r, int g, int b) {
-        float rNorm = r / 255f;
-        float gNorm = g / 255f;
-        float bNorm = b / 255f;
+    private void convertRGBtoHSV(int r, int g, int b) {
+        float rNorm = r / 255.0f;
+        float gNorm = g / 255.0f;
+        float bNorm = b / 255.0f;
 
         float max = Math.max(rNorm, Math.max(gNorm, bNorm));
         float min = Math.min(rNorm, Math.min(gNorm, bNorm));
+        float delta = max - min;
 
-        float h = 0;
-        float l = (max + min) / 2;
 
-        if (max == min) {
-            h = 0; // achromatic
+        float v = max;
+
+
+        float s;
+        if (max == 0) {
+            s = 0;
         } else {
-            float delta = max - min;
-            if (max == rNorm) {
-                h = (gNorm - bNorm) / delta + (gNorm < bNorm ? 6 : 0);
-            } else if (max == gNorm) {
-                h = (bNorm - rNorm) / delta + 2;
-            } else {
-                h = (rNorm - gNorm) / delta + 4;
-            }
-            h /= 6;
+            s = delta / max;
         }
 
-        float s = l == 0 || l == 1 ? 0 : (max - l) / Math.min(l, 1 - l);
+        float h;
+        if (delta == 0) {
+            h = 0;
+        } else if (max == rNorm) {
+            h = 60 * (((gNorm - bNorm) / delta) % 6);
+        } else if (max == gNorm) {
+            h = 60 * (((bNorm - rNorm) / delta) + 2);
+        } else {
+            h = 60 * (((rNorm - gNorm) / delta) + 4);
+        }
 
-        return new float[]{h * 360, l * 100, s * 100}; // H in degrees; L and S in percentage
+        if (h < 0) {
+            h += 360;
+        }
+
+        hField.setText(decimalFormat.format(h));
+        sField.setText(decimalFormat.format(s));
+        vField.setText(decimalFormat.format(v));
+        updatingSlider = true;
+        hSlider.setValue((int) h);
+        sSlider.setValue((int) (s * 100));
+        vSlider.setValue((int) (v * 100));
+        updatingSlider = false;
+
+    }
+
+    private void updateColorFromRGBSlider() {
+        if (!isRGBUpdating) {
+            isRGBUpdating = true; // Устанавливаем флаг, чтобы избежать зацикливания
+            try {
+                int r = redSlider.getValue();
+                int g = greenSlider.getValue();
+                int b = blueSlider.getValue();
+
+                redField.setText(String.valueOf(r));
+                greenField.setText(String.valueOf(g));
+                blueField.setText(String.valueOf(b));
+
+                chosenColor = new Color(r, g, b);
+                colorDisplayPanel.setBackground(chosenColor);
+                convertRGBtoOthers();
+            } finally {
+                isRGBUpdating = false; // Снимаем флаг после выполнения
+            }
+        }
+    }
+
+    private void updateCMYKSliders() {
+        if (!isCMYKUpdating) {
+            isCMYKUpdating = true; // Устанавливаем флаг для CMYK
+            try {
+                double c = cSlider.getValue() / 100.0;
+                double m = mSlider.getValue() / 100.0;
+                double y = ySlider.getValue() / 100.0;
+                double k = kSlider.getValue() / 100.0;
+
+                cField.setText(decimalFormat.format(c));
+                mField.setText(decimalFormat.format(m));
+                yField.setText(decimalFormat.format(y));
+                kField.setText(decimalFormat.format(k));
+
+                convertCMYKtoOthers();
+            } finally {
+                isCMYKUpdating = false; // Снимаем флаг после выполнения
+            }
+        }
+    }
+
+    private void updateHSVSliders() {
+        if (!isHSVUpdating) {
+            isHSVUpdating = true; // Устанавливаем флаг для HSV
+            try {
+                float h = hSlider.getValue() / 100.0f;
+                float s = sSlider.getValue() / 100.0f;
+                float v = vSlider.getValue() / 100.0f;
+
+                hField.setText(decimalFormat.format(h));
+                sField.setText(decimalFormat.format(s));
+                vField.setText(decimalFormat.format(v));
+
+                convertHSVtoOthers();
+            } finally {
+                isHSVUpdating = false; // Снимаем флаг после выполнения
+            }
+        }
+    }
+
+    private void convertCMYKtoOthers() {
+        try {
+            double c = Double.parseDouble(cField.getText());
+            double m = Double.parseDouble(mField.getText());
+            double y = Double.parseDouble(yField.getText());
+            double k = Double.parseDouble(kField.getText());
+
+            if (c < 0 || c > 1 || m < 0 || m > 1 || y < 0 || y > 1 || k < 0 || k > 1) {
+                JOptionPane.showMessageDialog(this, "Please enter values between 0 and 1 for CMYK.");
+                return;
+            }
+
+            int r = (int) ((1 - c) * (1 - k) * 255);
+            int g = (int) ((1 - m) * (1 - k) * 255);
+            int b = (int) ((1 - y) * (1 - k) * 255);
+
+            redField.setText(String.valueOf(r));
+            greenField.setText(String.valueOf(g));
+            blueField.setText(String.valueOf(b));
+
+            updatingSlider = true;
+            redSlider.setValue(r);
+            greenSlider.setValue(g);
+            blueSlider.setValue(b);
+            updatingSlider = false;
+
+            convertRGBtoHSV(r, g, b);
+
+            chosenColor = new Color(r, g, b);
+            colorDisplayPanel.setBackground(chosenColor);
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(this, "Please enter valid values.");
+        }
+    }
+
+    private void convertHSVtoOthers() {
+        try {
+            float h = Float.parseFloat(hField.getText());
+            float s = Float.parseFloat(sField.getText());
+            float v = Float.parseFloat(vField.getText());
+            if (h < 0 || h > 360 || s < 0 || s > 1 || v < 0 || v > 1) {
+                JOptionPane.showMessageDialog(this, "Please enter valid values for HSV.");
+                return;
+            }
+            h = h % 360;
+
+            float hPrime = h / 60.0f;
+            int sector = (int) Math.floor(hPrime);
+            float f = hPrime - sector;
+
+            float p = v * (1 - s);
+            float q = v * (1 - s * f);
+            float t = v * (1 - s * (1 - f));
+
+            float rNorm = 0, gNorm = 0, bNorm = 0;
+
+            switch (sector) {
+                case 0:
+                    rNorm = v;
+                    gNorm = t;
+                    bNorm = p;
+                    break;
+                case 1:
+                    rNorm = q;
+                    gNorm = v;
+                    bNorm = p;
+                    break;
+                case 2:
+                    rNorm = p;
+                    gNorm = v;
+                    bNorm = t;
+                    break;
+                case 3:
+                    rNorm = p;
+                    gNorm = q;
+                    bNorm = v;
+                    break;
+                case 4:
+                    rNorm = t;
+                    gNorm = p;
+                    bNorm = v;
+                    break;
+                case 5:
+                default:
+                    rNorm = v;
+                    gNorm = p;
+                    bNorm = q;
+                    break;
+            }
+
+            int r = Math.round(rNorm * 255);
+            int g = Math.round(gNorm * 255);
+            int b = Math.round(bNorm * 255);
+
+
+            redField.setText(String.valueOf(r));
+            greenField.setText(String.valueOf(g));
+            blueField.setText(String.valueOf(b));
+
+            updatingSlider = true;
+            redSlider.setValue(r);
+            greenSlider.setValue(g);
+            blueSlider.setValue(b);
+            updatingSlider = false;
+
+            convertRGBtoCMYK(r, g, b);
+
+            chosenColor = new Color(r, g, b);
+            colorDisplayPanel.setBackground(chosenColor);
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(this, "Please enter valid values.");
+        }
+    }
+
+    private void chooseColorFromPalette() {
+        chosenColor = JColorChooser.showDialog(this, "Choose Color", chosenColor);
+        if (chosenColor != null) {
+            int r = chosenColor.getRed();
+            int g = chosenColor.getGreen();
+            int b = chosenColor.getBlue();
+
+            redField.setText(String.valueOf(r));
+            greenField.setText(String.valueOf(g));
+            blueField.setText(String.valueOf(b));
+
+            updatingSlider = true;
+            redSlider.setValue(r);
+            greenSlider.setValue(g);
+            blueSlider.setValue(b);
+            updatingSlider = false;
+
+            convertRGBtoOthers();
+
+            colorDisplayPanel.setBackground(chosenColor);
+        }
     }
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(ColorPickerApp::new);
+        ColorConvert main = new ColorConvert();
+        main.setVisible(true);
     }
 }
