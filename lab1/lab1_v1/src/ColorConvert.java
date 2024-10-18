@@ -6,15 +6,23 @@ import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
+import java.util.ArrayList;
 import java.util.Locale;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ColorConvert extends JFrame {
 
     private JTextField redField, greenField, blueField;
     private JTextField cField, mField, yField, kField;
     private JTextField hField, sField, vField;
+
+    //private List<JTextField> textFields = new ArrayList<>(redField, greenField, blueField, cField, mField, yField, kField, hField, sField, vField);
+    //textFields
     private JPanel colorDisplayPanel;
     private Color chosenColor = Color.WHITE;
     private JSlider redSlider, greenSlider, blueSlider;
@@ -29,6 +37,7 @@ public class ColorConvert extends JFrame {
     private DecimalFormat decimalFormat;
 
     public ColorConvert() {
+
         DecimalFormatSymbols symbols = new DecimalFormatSymbols(Locale.US);
         decimalFormat = new DecimalFormat("#.##", symbols);
 
@@ -38,16 +47,16 @@ public class ColorConvert extends JFrame {
         setLocationRelativeTo(null);
         setLayout(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 15, 5, 15);
+        gbc.insets = new Insets(5, 20, 5, 15);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
         //-----
         colorDisplayPanel = new JPanel();
-        colorDisplayPanel.setPreferredSize(new Dimension(100, 100));
+        colorDisplayPanel.setPreferredSize(new Dimension(500, 100));
         colorDisplayPanel.setBackground(Color.WHITE);
-        gbc.gridx = 0;
+        gbc.gridx = 1;
         gbc.gridy = 0;
-        gbc.gridwidth = 2;
+        gbc.gridwidth = 1;
         gbc.anchor = GridBagConstraints.CENTER;
         add(new JLabel("Color Display:"), gbc);
         gbc.gridy = 1;
@@ -72,7 +81,7 @@ public class ColorConvert extends JFrame {
                 }
             }
         });
-        gbc.gridx = 2;
+        gbc.gridx = 3;
         add(redSlider, gbc);
 
         gbc.gridx = 0;
@@ -308,6 +317,24 @@ public class ColorConvert extends JFrame {
                 chooseColorFromPalette();
             }
         });
+
+        List<JTextField> textFields = new ArrayList<>(List.of(redField, greenField, blueField, cField, mField, yField, kField, hField, sField, vField));
+
+        for (int i = 0; i < textFields.size(); i++) {
+            var field = textFields.get(i);
+            textFields.get(i).addFocusListener(new FocusAdapter() {
+                @Override
+                public void focusLost(FocusEvent e) {
+                    // Check if the text field is empty
+                    if (field.getText().isEmpty()) {
+                        field.setText("0"); // Set to "0" if empty
+                        convertRGBtoOthers();
+                        convertHSVtoOthers();
+                        convertCMYKtoOthers();
+                    }
+                }
+            });
+        }
     }
 
     private void convertRGBtoOthers() {
