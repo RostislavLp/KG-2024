@@ -282,6 +282,8 @@ public class ColorConvert extends JFrame {
         add(hsvToOthersButton, gbc);
 
         // Color Chooser and color display
+
+        ///ColorChooser
         JButton chooseColorButton = new JButton("  Color Chooser  ");
         gbc.gridy = 15;
         add(chooseColorButton, gbc);
