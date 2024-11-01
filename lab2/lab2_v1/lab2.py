@@ -41,35 +41,27 @@ def select_image():
 def linear_contrast():
     global current_image, image_on_canvas, canvas
     if current_image is not None:
-        # Разделяем оригинальное изображение на три канала
         b_channel, g_channel, r_channel = cv2.split(current_image)
 
-        # Применение поэлементных операций для каждого канала
-        b_channel = cv2.add(b_channel, 50)  # Увеличение яркости для синего канала
-        g_channel = cv2.add(g_channel, 50)  # Увеличение яркости для зеленого канала
-        r_channel = cv2.add(r_channel, 50)  # Увеличение яркости для красного канала
+        b_channel = cv2.add(b_channel, 50)  
+        g_channel = cv2.add(g_channel, 50)  
+        r_channel = cv2.add(r_channel, 50) 
 
-        # Увеличение контраста для каждого канала
-        b_channel = cv2.multiply(b_channel, 1.2)  # Увеличение контраста для синего канала
-        g_channel = cv2.multiply(g_channel, 1.2)  # Увеличение контраста для зеленого канала
-        r_channel = cv2.multiply(r_channel, 1.2)  # Увеличение контраста для красного канала
+        b_channel = cv2.multiply(b_channel, 1.2)  
+        g_channel = cv2.multiply(g_channel, 1.2) 
+        r_channel = cv2.multiply(r_channel, 1.2) 
 
-        # Объединяем каналы обратно в одно изображение
         enhanced_image = cv2.merge((b_channel, g_channel, r_channel))
 
-        # Преобразуем изображение в формат float32 для точных вычислений
         f_image = enhanced_image.astype(np.float32)
 
-        # Вычислим минимальное и максимальное значения пикселей
         min_val = np.min(f_image)
         max_val = np.max(f_image)
 
-        # Применим линейное контрастирование
         scaled_image = 255 * (f_image - min_val) / (max_val - min_val)
         scaled_image = np.clip(scaled_image, 0, 255).astype(np.uint8)
 
-        # Конвертируем результат в RGB для отображения
-        result_image_rgb = cv2.cvtColor(scaled_image, cv2.COLOR_BGR2RGB)  # Правильная конвертация из BGR в RGB
+        result_image_rgb = cv2.cvtColor(scaled_image, cv2.COLOR_BGR2RGB) 
         result_image_rgb = Image.fromarray(result_image_rgb)
         result_image_tk = ImageTk.PhotoImage(result_image_rgb)
 
@@ -84,18 +76,14 @@ def linear_contrast():
 def equalize_rgb():
     global current_image, image_on_canvas, canvas
     if current_image is not None:
-        # Разделить изображение на три канала RGB
         r_channel, g_channel, b_channel = cv2.split(current_image)
 
-        # Эквализация гистограммы для каждого канала
         r_eq = cv2.equalizeHist(r_channel)
         g_eq = cv2.equalizeHist(g_channel)
         b_eq = cv2.equalizeHist(b_channel)
 
-        # Объединение каналов после эквализации
         equalized_rgb_image = cv2.merge((r_eq, g_eq, b_eq))
 
-        # Показать результат на холсте
         display_image(equalized_rgb_image)
     else:
         print("Нет изображения для обработки.")
@@ -104,19 +92,14 @@ def equalize_rgb():
 def equalize_hsv():
     global current_image, image_on_canvas, canvas
     if current_image is not None:
-        # Преобразуем изображение в HSV
         hsv_image = cv2.cvtColor(current_image, cv2.COLOR_BGR2HSV)
 
-        # Эквализация гистограммы для V (яркости)
         h, s, v = cv2.split(hsv_image)
         v_eq = cv2.equalizeHist(v)
-        # Объединение каналов после эквализации яркости
         equalized_hsv_image = cv2.merge((h, s, v_eq))
 
-        # Преобразование обратно в BGR для отображения
         equalized_bgr_image = cv2.cvtColor(equalized_hsv_image, cv2.COLOR_HSV2BGR)
 
-        # Показать результат на холсте
         display_image(equalized_bgr_image)
     else:
         print("Нет изображения для обработки.")
@@ -125,22 +108,19 @@ def equalize_hsv():
 def reset_image():
     global original_image, current_image, image_on_canvas, canvas
     if original_image is not None:
-        current_image = original_image.copy()  # Восстановить текущее изображение из оригинала
+        current_image = original_image.copy()  
         display_image(current_image)
 
 
-# Функция для отображения изображения на холсте
 def display_image(image):
     global image_on_canvas
-    image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)  # Преобразование из BGR в RGB
+    image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)  
     image_pil = Image.fromarray(image_rgb)
     image_tk = ImageTk.PhotoImage(image_pil)
 
-    # Очистка предыдущего изображения
     if image_on_canvas is not None:
         canvas.delete(image_on_canvas)
 
-    # Установка нового изображения на холст
     image_on_canvas = canvas.create_image(0, 0, anchor='nw', image=image_tk)
     canvas.image = image_tk
 
