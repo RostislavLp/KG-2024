@@ -334,7 +334,7 @@ public class ImageEdit
                 d2.fillRect(0, 0, japan.getWidth(), japan.getHeight());
                 width  = japan.getWidth();
                 height = japan.getHeight();
-                d2.setColor(Color.black);
+                d2.setColor(Color.green);
                 d2.setStroke(new BasicStroke(1.0f));
                 redrawAll(d2);
                 drawGrid(d2);
@@ -437,10 +437,10 @@ public class ImageEdit
             if (rezhim != 1) g2.setColor(Color.red);
             else g2.setColor(Color.white);
             g2.drawLine(x, y, x, y);
-            g2.setColor(Color.black);
+            g2.setColor(Color.green);
         } else
         {
-            g2.setColor(Color.black);
+            g2.setColor(Color.green);
             g2.fillRect(x * gridWidth, y * gridWidth, gridWidth, gridWidth);
         }
     }
@@ -467,7 +467,8 @@ public class ImageEdit
     public void drawGrid(Graphics2D g2)
     {
         if (gridWidth <= 0) return;
-        g2.setColor(Color.black);
+
+        g2.setColor(Color.green);
         g2.setStroke(new BasicStroke(1.0f));
         for (int x = 0; x <= width; x += gridWidth)
         {
@@ -506,11 +507,12 @@ public class ImageEdit
             g2.drawString(Integer.toString(label), 10, y + gridWidth / 3);
         }
 
+
         g2.drawString("X", width - 20, 20);
         g2.drawString("Y", 10, height - 30);
 
         g2.setStroke(new BasicStroke(1.0f));
-        g2.setColor(Color.black);
+        g2.setColor(Color.green);
     }
 
     public void clearArrays()
