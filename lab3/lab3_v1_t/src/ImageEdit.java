@@ -65,6 +65,9 @@ public class ImageEdit
         JMenu lineMenu = new JMenu("Линия");
         menuBar.add(lineMenu);
 
+        JMenu circleMenu = new JMenu("Круг");
+        menuBar.add(circleMenu);
+
         Action SbSAction = new AbstractAction("Пошаговая")
         {
             public void actionPerformed(ActionEvent event)
@@ -139,6 +142,42 @@ public class ImageEdit
             }
         };
 
+        Action BrCircleAction = new AbstractAction("Брезенхем круг")
+        {
+            public void actionPerformed(ActionEvent event)
+            {
+                try
+                {
+                    String input = JOptionPane.showInputDialog("Введите x1 y1 r:");
+
+                    if (input != null && !input.isEmpty())
+                    {
+                        String[] numbers = input.split(" ");
+                        if (numbers.length == 3)
+                        {
+                            int x1 = Integer.parseInt(numbers[0]);
+                            int y1 = Integer.parseInt(numbers[1]);
+                            int r = Integer.parseInt(numbers[2]);
+
+                            //beginLBr.add(new Pair((double) x1 / width * gridWidth, (double) y1 / height * gridWidth));
+                            //endLBr.add(new Pair((double) x2 / width * gridWidth, (double) y2 / height * gridWidth));
+
+                            drawCircle((Graphics2D) imag.getGraphics(), x1, y1, r);
+
+                            startTime = System.nanoTime();
+                            //drawLineBr((Graphics2D) imag.getGraphics(), x1 * gridWidth, y1 * gridWidth,
+                            //        x2 * gridWidth, y2 * gridWidth, false);
+                            endTime = System.nanoTime();
+                            Brt     = endTime - startTime;
+                            japan.repaint();
+                        }
+                    }
+                } catch (Exception ignored)
+                {
+                }
+            }
+        };
+
         Action timeAction = new AbstractAction("Время")
         {
             public void actionPerformed(ActionEvent event)
@@ -156,10 +195,13 @@ public class ImageEdit
         JMenuItem SbSMenu  = new JMenuItem(SbSAction);
         JMenuItem BrMenu   = new JMenuItem(BrAction);
         JMenuItem TimeMenu = new JMenuItem(timeAction);
+        JMenuItem circleItemMenu = new JMenuItem(BrCircleAction);
 
         lineMenu.add(SbSMenu);
         lineMenu.add(BrMenu);
         lineMenu.add(TimeMenu);
+
+        circleMenu.add(circleItemMenu);
 
         japan = new MyPanel();
         japan.setBounds(30, 30, 260, 260);
@@ -396,6 +438,31 @@ public class ImageEdit
                 pixel(g2, x, y, bigD);
                 y++;
             }
+        }
+    }
+
+    private void drawCircle(Graphics2D g, int centerX, int centerY, int radius) {
+        int x = 0;
+        int y = radius;
+        int d = 3 - 2 * radius; // Начальное значение d
+
+        while (x <= y) {
+            pixel(g, centerX + x, centerY + y, true);
+            pixel(g, centerX - x, centerY + y, true);
+            pixel(g, centerX + x, centerY - y, true);
+            pixel(g, centerX - x, centerY - y, true);
+            pixel(g, centerX + y, centerY + x, true);
+            pixel(g, centerX - y, centerY + x, true);
+            pixel(g, centerX + y, centerY - x, true);
+            pixel(g, centerX - y, centerY - x, true);
+
+            if (d < 0) {
+                d = d + (4 * x) + 6; // Увеличиваем d
+            } else {
+                d = d + (4 * (x - y)) + 10; // Уменьшаем y
+                y--;
+            }
+            x++; // Увеличиваем x
         }
     }
 
