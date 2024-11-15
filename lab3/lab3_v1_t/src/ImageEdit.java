@@ -14,7 +14,7 @@ public class ImageEdit
     int     yPad;
     int     gridWidth                = 30;
     boolean pressed                  = false;
-    long    startTime, endTime, SbSt = 0, Brt = 0;
+    long    startTime, endTime, SbSt = 0, Brt = 0, CDAt =0;
     // текущий цвет
     Color           maincolor;
     MyFrame         f;
@@ -142,6 +142,43 @@ public class ImageEdit
             }
         };
 
+        Action SCDAAction = new AbstractAction("ЦДА")
+        {
+            public void actionPerformed(ActionEvent event)
+            {
+                try
+                {
+                    String input = JOptionPane.showInputDialog("Введите x1 y1 x2 y2:");
+
+                    if (input != null && !input.isEmpty())
+                    {
+                        String[] numbers = input.split(" ");
+                        if (numbers.length == 4)
+                        {
+                            int x1 = Integer.parseInt(numbers[0]);
+                            int y1 = Integer.parseInt(numbers[1]);
+                            int x2 = Integer.parseInt(numbers[2]);
+                            int y2 = Integer.parseInt(numbers[3]);
+
+                            //beginLSbS.add(new Pair((double) x1 / width * gridWidth, (double) y1 / height * gridWidth));
+                            //endLSbS.add(new Pair((double) x2 / width * gridWidth, (double) y2 / height * gridWidth));
+
+                            drawCDALine((Graphics2D) imag.getGraphics(), x1, y1, x2, y2);
+
+                            startTime = System.nanoTime();
+                            drawCDALine((Graphics2D) imag.getGraphics(), x1 * gridWidth, y1 * gridWidth,
+                                    x2 * gridWidth, y2 * gridWidth);
+                            endTime = System.nanoTime();
+                            CDAt    = endTime - startTime;
+                            japan.repaint();
+                        }
+                    }
+                } catch (Exception ignored)
+                {
+                }
+            }
+        };
+
         Action BrCircleAction = new AbstractAction("Брезенхем круг")
         {
             public void actionPerformed(ActionEvent event)
@@ -185,7 +222,7 @@ public class ImageEdit
                 try
                 {
                     JOptionPane.showMessageDialog(null, "Пошаговый метод: " + SbSt + " ns\n" +
-                            "Метод Брезенхема: " + Brt + " ns");
+                            "Метод Брезенхема: " + Brt + " ns\n" + "ЦДА: " + CDAt + " ns\n");
                 } catch (Exception ignored)
                 {
                 }
@@ -194,12 +231,14 @@ public class ImageEdit
 
         JMenuItem SbSMenu  = new JMenuItem(SbSAction);
         JMenuItem BrMenu   = new JMenuItem(BrAction);
+        JMenuItem CDAMenu   = new JMenuItem(SCDAAction);
         JMenuItem TimeMenu = new JMenuItem(timeAction);
         JMenuItem circleItemMenu = new JMenuItem(BrCircleAction);
 
         lineMenu.add(SbSMenu);
         lineMenu.add(BrMenu);
         lineMenu.add(TimeMenu);
+        lineMenu.add(SCDAAction);
 
         circleMenu.add(circleItemMenu);
 
@@ -463,6 +502,30 @@ public class ImageEdit
                 y--;
             }
             x++; // Увеличиваем x
+        }
+    }
+
+    private void drawCDALine(Graphics2D g, int x1, int y1, int x2, int y2) {
+        // Вычисляем разности
+        int dx = x2 - x1;
+        int dy = y2 - y1;
+
+        // Определяем количество шагов
+        int steps = Math.max(Math.abs(dx), Math.abs(dy));
+
+        // Вычисляем приращения
+        float xIncrement = (float) dx / steps;
+        float yIncrement = (float) dy / steps;
+
+        // Начальные координаты
+        float x = x1;
+        float y = y1;
+
+        // Рисуем линию
+        for (int i = 0; i <= steps; i++) {
+            pixel(g, Math.round(x), Math.round(y), true);
+            x += xIncrement;
+            y += yIncrement;
         }
     }
 
